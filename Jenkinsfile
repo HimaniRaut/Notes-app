@@ -1,98 +1,66 @@
 pipeline {
-    agent { label "dev" }
+    agent any
 
     environment {
-        DOCKER_CREDS   = credentials('Docker_Hub_Id_Pwd')
-        IMAGE_NAME     = "notes-app"
-        IMAGE_TAG      = "v1.${BUILD_NUMBER}"
-        CONTAINER_NAME = "notes-app-container"
-        PORT           = "9092"
-        HOST_IP        = "15.206.27.95"
+        Image_Name = "notes-app:latest"
+        Container_name = "notes-app-container"
+        port = "9091"
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-                git branch: 'master', url: 'https://github.com/Satyams-git/notes-app.git'
+                git url: 'https://github.com/HimaniRaut/Notes-app.git', branch: 'main'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh '''
-                    echo "===== Building Docker Image ====="
-                    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                '''
+                sh """
+                    echo "Building docker image..."
+                    docker build -t ${env.Image_Name} .
+                """
             }
         }
 
-        stage('Tag & Push Image') {
+        stage('Stop existing container') {
             steps {
-                sh '''
-                    echo "===== Logging in to Docker Hub ====="
-                    echo "$DOCKER_CREDS_PSW" | docker login -u "$DOCKER_CREDS_USR" --password-stdin
-
-                    echo "===== Tagging Image ====="
-                    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${DOCKER_CREDS_USR}/${IMAGE_NAME}:${IMAGE_TAG}
-
-                    echo "===== Pushing Image ====="
-                    docker push ${DOCKER_CREDS_USR}/${IMAGE_NAME}:${IMAGE_TAG}
-                '''
+                sh """
+                    echo "Stopping existing container if any..."
+                    docker stop ${env.Container_name} || true
+                    docker rm ${env.Container_name} || true
+                """
             }
         }
 
-        stage('Stop Old Container') {
+        stage("Start a new Container at ${env.port} port") {
             steps {
-                sh '''
-                    echo "===== Stopping Old Container ====="
-                    docker stop ${CONTAINER_NAME} || true
-                    docker rm ${CONTAINER_NAME} || true
-                '''
+                sh """
+                    echo "Starting a new Container"
+                    docker run -d -p ${env.port}:9091 --name ${env.Container_name} ${env.Image_Name}
+                """
             }
         }
 
-        stage('Run New Container') {
+        stage('Verify the container status') {
             steps {
-                sh '''
-                    echo "===== Running New Container ====="
-                    docker run -d --name ${CONTAINER_NAME} -p ${PORT}:80 -v notes-data:/data ${DOCKER_CREDS_USR}/${IMAGE_NAME}:${IMAGE_TAG}
-                '''
-            }
-        }
-
-        stage('Verify Deployment') {
-            steps {
-                sh '''
-                    echo "===== Verifying App ====="
-                    sleep 10
-                    curl -f http://${HOST_IP}:${PORT}
-                '''
+                sh """
+                    echo "Verifying the status of the container"
+                    docker ps -a
+                    sleep 5
+                    curl -s http://127.0.0.1:${env.port} | head -n 20 || true
+                """
             }
         }
     }
 
     post {
         success {
-            echo "===== Deployment Successful: http://${HOST_IP}:${PORT} ====="
-            emailext(
-                subject: "Build Successful",
-                body: "Build was Successful - Congrats!",
-                to: "satyam.du.in@gmail.com"
-            )
+            echo 'Deployment Successful !!'
         }
+
         failure {
-            echo "===== Deployment Failed! Check logs ====="
-            emailext(
-                subject: "Build Failed",
-                body: "Oops! Build Failed",
-                to: "satyam.du.in@gmail.com"
-            )
-        }
-        always {
-            sh '''
-                echo "===== Cleaning Unused Images ====="
-                docker image prune -f
-            '''
+            echo 'Deployment Failed!!'
         }
     }
 }
