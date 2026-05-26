@@ -33,7 +33,7 @@ pipeline {
             }
         }
 
-        stage("Start a new Container at ${env.port} port") {
+        stage('Start a new Container at ${env.port} port') {
             steps {
                 sh """
                     echo "Starting a new Container"
