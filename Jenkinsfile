@@ -37,7 +37,7 @@ pipeline {
             steps {
                 sh """
                     echo "Starting a new Container"
-                    docker run -d -p ${env.port}:9091 --name ${env.Container_name} ${env.Image_Name}
+                    docker run -d -p ${env.port}:80 --name ${env.Container_name} ${env.Image_Name}
                 """
             }
         }
