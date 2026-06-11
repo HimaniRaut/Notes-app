@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Satyam - Notes App</title>
+    <title>Himani - Notes App</title>
     <style>
         body {
             font-family: "Segoe UI", Arial, sans-serif;
@@ -124,7 +124,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Qualibytes - Notes App</h1>
+        <h1> Notes App</h1>
         <form action="save.php" method="post">
             <textarea name="note" placeholder="Write your notes here..."></textarea><br>
             <button type="submit">💾 Save Note</button>
