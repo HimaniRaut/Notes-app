@@ -5,7 +5,7 @@ pipeline {
         SONAR_PROJECT_KEY = 'notes-app'
         SONAR_HOST_URL    = 'http://127.0.0.1:9000'
         DOCKER_IMAGE      = 'satyamsri/notes-app:latest'
-        REPO_URL          = 'https://github.com/satyamsri/notes-app.git'
+        REPO_URL          = 'https://github.com/HimaniRaut/Notes-app.git'
     }
 
     stages {
